@@ -1,0 +1,71 @@
+HELP.md
+
+# Build output
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Maven wrapper binary
+.mvn/wrapper/maven-wrapper.jar
+
+# Runtime/generated files
+.metadata/
+data/lucene/
+*.log
+.DS_Store
+
+# Package artifacts
+*.jar
+*.war
+*.zip
+*.tar.gz
+*.rar
+
+# IDE files
+.idea/
+.vscode/
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+<<<<<<< HEAD
+
+# Compiled class file
+*.class
+*.ctxt
+.mtj.tmp/
+hs_err_pid*
+replay_pid*
+<<<<<<< HEAD
+# Bỏ qua các file chứa biến môi trường và mật khẩu
+.env
+.env.*
+application-local.properties
+application-secret.properties
+#xoá bỏ file ds_Store
+.DS_Store
+=======
+# bỏ qua file .ds_store 
+.DS_Store
+**/.DS_Store
+>>>>>>> quanlyhoidongvaminhchung
+=======
+>>>>>>> 7907610cb0801be9b05dc14f2e3f22973ea86949
+.DS_Store
+>>>>>>> feature-auth

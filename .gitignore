@@ -1,0 +1,8 @@
+# Bỏ qua các tệp tài liệu văn phòng
+*.docx
+*.pdf
+*.doc
+
+# Bỏ qua các thư mục cấu hình của IDE / Hệ thống
+.metadata/
+.vscode/
