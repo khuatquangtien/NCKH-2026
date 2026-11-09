@@ -3,6 +3,10 @@ package vn.edu.epu.quanlyhoso.common.dto.response;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+@AllArgsConstructor
 public class ErrorResponse {
 
     private LocalDateTime timestamp;
@@ -14,6 +18,8 @@ public class ErrorResponse {
     private String message;
 
     private String path;
+
+    private String code;
 
     private Map<String, String> validationErrors;
 
@@ -60,11 +66,19 @@ public class ErrorResponse {
         this.path = path;
     }
 
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public Map<String, String> getValidationErrors() {
         return validationErrors;
     }
 
     public void setValidationErrors(Map<String, String> validationErrors) {
         this.validationErrors = validationErrors;
+    }
+
+    public String getCode() {
+        return code;
     }
 }

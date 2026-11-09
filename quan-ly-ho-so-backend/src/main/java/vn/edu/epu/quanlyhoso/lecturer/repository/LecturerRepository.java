@@ -17,4 +17,5 @@ public interface LecturerRepository extends JpaRepository<Lecturer, Integer> {
     
     
     List<Lecturer> findByFaculty(String faculty);
+    List<Lecturer> findByFullNameContainingIgnoreCaseOrFacultyContainingIgnoreCase(String fullName, String faculty);
 }

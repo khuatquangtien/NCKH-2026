@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import vn.edu.epu.quanlyhoso.project.dto.request.CreateProjectRequest;
+import vn.edu.epu.quanlyhoso.project.dto.request.UpdateProjectRequest;
 import vn.edu.epu.quanlyhoso.project.dto.request.UpdateProjectBudgetRequest;
 import vn.edu.epu.quanlyhoso.project.dto.request.UpdateProjectStatusRequest;
 import vn.edu.epu.quanlyhoso.project.dto.response.BudgetResponse;
@@ -15,6 +16,10 @@ public interface ProjectService {
 
     ProjectDetailResponse createProject(CreateProjectRequest request);
 
+    ProjectDetailResponse updateProject(Integer projectId, UpdateProjectRequest request);
+
+    void deleteProject(Integer projectId);
+
     List<ProjectResponse> searchProjects(
             ProjectStatus status,
             String faculty,
@@ -25,6 +30,7 @@ public interface ProjectService {
             BigDecimal maxApprovedBudget);
 
     ProjectDetailResponse getProjectById(Integer projectId);
+    List<ProjectResponse> getMyProjects();
 
     ProjectDetailResponse updateProjectStatus(Integer projectId, UpdateProjectStatusRequest request);
 

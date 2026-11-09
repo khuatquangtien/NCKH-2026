@@ -5,6 +5,9 @@ const projectApi = {
   getById: (id, admin = false) =>
     axiosInstance.get(`${admin ? "/admin" : ""}/projects/${id}`),
   create: (data) => axiosInstance.post("/projects", data),
+  update: (id, data) => axiosInstance.put(`/projects/${id}`, data),
+  remove: (id) => axiosInstance.delete(`/projects/${id}`),
+  getMine: () => axiosInstance.get("/projects/me"),
   updateStatus: (id, data) =>
     axiosInstance.patch(`/admin/projects/${id}/status`, data),
   updateBudget: (id, data) =>

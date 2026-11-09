@@ -26,6 +26,18 @@ import vn.edu.epu.quanlyhoso.project.exception.InvalidProjectStatusException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ProfileIncompleteException.class)
+    public ResponseEntity<ErrorResponse> handleProfileIncomplete(
+            ProfileIncompleteException exception,
+            HttpServletRequest request) {
+        ResponseEntity<ErrorResponse> response = buildResponse(HttpStatus.FORBIDDEN,
+                exception.getMessage(),
+                request.getRequestURI(),
+                null);
+        response.getBody().setCode("PROFILE_INCOMPLETE");
+        return response;
+    }
+
     // --- CÁC EXCEPTION KHÔNG TÌM THẤY TÀI NGUYÊN (NOT FOUND) ---
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
@@ -96,8 +108,8 @@ public class GlobalExceptionHandler {
             ConstraintViolationException exception,
             HttpServletRequest request) {
         Map<String, String> validationErrors = new LinkedHashMap<>();
-        exception.getConstraintViolations().forEach(violation ->
-                validationErrors.put(violation.getPropertyPath().toString(), violation.getMessage()));
+        exception.getConstraintViolations().forEach(
+                violation -> validationErrors.put(violation.getPropertyPath().toString(), violation.getMessage()));
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "Validation failed",

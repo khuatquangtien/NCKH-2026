@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Khởi tạo một instance của axios với URL mặc định trỏ xuống Backend Spring Boot
 const axiosClient = axios.create({
-  baseURL: "http://localhost:8080/api", // Thay đổi port nếu backend của bạn chạy port khác
+  baseURL: "http://localhost:8082/api", // Thay đổi port nếu backend của bạn chạy port khác
   headers: {
     "Content-Type": "application/json",
   },

@@ -32,6 +32,7 @@ import {
 import adminApi from "../api/adminApi";
 import authApi from "../api/authApi";
 import EditAccountModal from "../components/AccountManager/EditAccountModal";
+import { showApiError } from "../utils/apiError";
 
 const roleMeta = {
   ADMIN: { label: "Quản trị viên", color: "blue" },
@@ -56,8 +57,8 @@ export default function AccountManager() {
     try {
       const data = await adminApi.getAllAccounts();
       setAccounts(Array.isArray(data) ? data : []);
-    } catch {
-      message.error("Không thể tải danh sách tài khoản.");
+    } catch (e) {
+      showApiError(e, "Không thể tải danh sách tài khoản.");
     } finally {
       setLoading(false);
     }
@@ -103,9 +104,7 @@ export default function AccountManager() {
       message.success(`Đã xóa tài khoản ${account.username}.`);
       loadAccounts();
     } catch (error) {
-      message.error(
-        error.response?.data?.message || "Không thể xóa tài khoản này.",
-      );
+      showApiError(error, "Không thể xóa tài khoản này.");
     }
   };
 
@@ -127,11 +126,7 @@ export default function AccountManager() {
       createForm.resetFields();
       loadAccounts();
     } catch (error) {
-      message.error(
-        typeof error.response?.data === "string"
-          ? error.response.data
-          : "Không thể tạo tài khoản.",
-      );
+      showApiError(error, "Không thể tạo tài khoản.");
     } finally {
       setCreating(false);
     }

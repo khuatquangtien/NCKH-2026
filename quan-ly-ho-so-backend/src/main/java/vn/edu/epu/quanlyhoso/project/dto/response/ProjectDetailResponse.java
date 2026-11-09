@@ -22,6 +22,8 @@ public class ProjectDetailResponse {
 
     private ProjectStatus status;
 
+    private String rejectionReason;
+
     private String faculty;
 
     private Integer leaderId;
@@ -93,6 +95,14 @@ public class ProjectDetailResponse {
 
     public void setStatus(ProjectStatus status) {
         this.status = status;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 
     public String getFaculty() {

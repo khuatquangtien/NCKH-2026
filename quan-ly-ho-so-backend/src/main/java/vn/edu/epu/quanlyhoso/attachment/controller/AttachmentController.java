@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import vn.edu.epu.quanlyhoso.attachment.dto.response.AttachmentResponse;
@@ -66,5 +67,15 @@ public class AttachmentController {
     @GetMapping("/projects/{projectId}")  // ← KHÔNG cần phân quyền
     public ResponseEntity<List<Attachment>> findByProjectId(@PathVariable Long projectId) {
         return ResponseEntity.ok(attachmentService.findByProjectId(projectId));
+    }
+
+    @GetMapping("/papers/{paperId}")
+    public ResponseEntity<List<Attachment>> findByPaperId(@PathVariable Long paperId) {
+        return ResponseEntity.ok(attachmentService.findByPaperId(paperId));
+    }
+
+    @DeleteMapping("/{attachmentId}")
+    public ResponseEntity<Void> delete(@PathVariable Long attachmentId) {
+        attachmentService.delete(attachmentId); return ResponseEntity.noContent().build();
     }
 }

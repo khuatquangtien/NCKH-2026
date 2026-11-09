@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import vn.edu.epu.quanlyhoso.auth.entity.Account;
+import vn.edu.epu.quanlyhoso.common.exception.ProfileIncompleteException;
 import vn.edu.epu.quanlyhoso.common.exception.ResourceNotFoundException;
 import vn.edu.epu.quanlyhoso.common.security.CurrentUserService;
 import vn.edu.epu.quanlyhoso.lecturer.entity.Lecturer;
 import vn.edu.epu.quanlyhoso.lecturer.repository.LecturerRepository;
+import vn.edu.epu.quanlyhoso.lecturer.service.CurrentLecturerService;
 import vn.edu.epu.quanlyhoso.project.dto.request.SubmitProjectSubmissionRequest;
 import vn.edu.epu.quanlyhoso.project.dto.response.ProjectSubmissionResponse;
 import vn.edu.epu.quanlyhoso.project.entity.Project;
@@ -34,6 +36,8 @@ public class ProjectSubmissionServiceImpl implements ProjectSubmissionService {
     private final ProjectSearchIndexService projectSearchIndexService;
     private final CurrentUserService currentUserService;
     private final LecturerRepository lecturerRepository;
+    private final ProjectAccessService projectAccessService;
+    private final CurrentLecturerService currentLecturerService;
 
     public ProjectSubmissionServiceImpl(
             ProjectRepository projectRepository,
@@ -41,13 +45,17 @@ public class ProjectSubmissionServiceImpl implements ProjectSubmissionService {
             ProjectSubmissionMapper projectSubmissionMapper,
             ProjectSearchIndexService projectSearchIndexService,
             CurrentUserService currentUserService,
-            LecturerRepository lecturerRepository) {
+            LecturerRepository lecturerRepository,
+            ProjectAccessService projectAccessService,
+            CurrentLecturerService currentLecturerService) {
         this.projectRepository = projectRepository;
         this.projectSubmissionRepository = projectSubmissionRepository;
         this.projectSubmissionMapper = projectSubmissionMapper;
         this.projectSearchIndexService = projectSearchIndexService;
         this.currentUserService = currentUserService;
         this.lecturerRepository = lecturerRepository;
+        this.projectAccessService = projectAccessService;
+        this.currentLecturerService = currentLecturerService;
     }
 
     @Override
@@ -59,11 +67,12 @@ public class ProjectSubmissionServiceImpl implements ProjectSubmissionService {
         if (project.getStatus() != ProjectStatus.ONGOING) {
             throw new InvalidProjectStatusException("Final submissions can only be submitted for ONGOING projects");
         }
-        Lecturer currentLecturer = getCurrentLecturer();
+        Lecturer currentLecturer = currentLecturerService.getCurrentLecturerOrThrow();
         if (!isProjectLeader(project, currentLecturer)) {
             throw new AccessDeniedException("Only the project leader can submit the final submission");
         }
-        // A project has only one final acceptance submission; the table also enforces this with a unique project_id.
+        // A project has only one final acceptance submission; the table also enforces
+        // this with a unique project_id.
         if (projectSubmissionRepository.existsByProjectId(projectId)) {
             throw new DuplicateSubmissionException("Final submission already exists for project id: " + projectId);
         }
@@ -85,10 +94,8 @@ public class ProjectSubmissionServiceImpl implements ProjectSubmissionService {
     @Override
     @Transactional(readOnly = true)
     public ProjectSubmissionResponse getSubmissionByProject(Integer projectId) {
-        // TODO: Apply lecturer/admin visibility rules after Security module is merged.
-        if (!projectRepository.existsById(projectId)) {
-            throw new ResourceNotFoundException("Project not found with id: " + projectId);
-        }
+        Project project = findProjectById(projectId);
+        projectAccessService.assertCanView(project);
         ProjectSubmission submission = projectSubmissionRepository.findByProjectId(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Final submission not found for project id: " + projectId));
@@ -98,13 +105,6 @@ public class ProjectSubmissionServiceImpl implements ProjectSubmissionService {
     private Project findProjectById(Integer projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
-    }
-
-    private Lecturer getCurrentLecturer() {
-        Account currentAccount = currentUserService.getCurrentAccount();
-        return lecturerRepository.findByAccountId(currentAccount.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lecturer profile not found for current account"));
     }
 
     private boolean isProjectLeader(Project project, Lecturer lecturer) {

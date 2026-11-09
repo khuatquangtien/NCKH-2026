@@ -8,4 +8,6 @@ import vn.edu.epu.quanlyhoso.council.entity.CouncilMemberId;
 
 public interface CouncilMemberRepository extends JpaRepository<CouncilMember, CouncilMemberId> {
     List<CouncilMember> findByCouncilId(Long councilId);
+    List<CouncilMember> findByLecturerId(Long lecturerId);
+    boolean existsByCouncilIdAndLecturerId(Long councilId, Long lecturerId);
 }

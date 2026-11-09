@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Card, Form, Input, Skeleton, message } from "antd";
 import profileApi from "../api/profileApi";
 import { useAuth } from "../context/AuthContext";
+import { showApiError } from "../utils/apiError";
 
 export default function ProfilePage() {
   const [form] = Form.useForm();
@@ -12,7 +13,7 @@ export default function ProfilePage() {
     profileApi
       .getMe()
       .then((data) => form.setFieldsValue(data))
-      .catch(() => message.error("Không thể tải hồ sơ cá nhân."))
+      .catch((e) => showApiError(e, "Không thể tải hồ sơ cá nhân."))
       .finally(() => setLoading(false));
   }, [form]);
   const save = async (values) => {
@@ -22,8 +23,8 @@ export default function ProfilePage() {
       form.setFieldsValue(data);
       setUser((old) => ({ ...old, ...data }));
       message.success("Đã cập nhật hồ sơ.");
-    } catch {
-      message.error("Cập nhật hồ sơ không thành công.");
+    } catch (e) {
+      showApiError(e, "Cập nhật hồ sơ không thành công.");
     } finally {
       setSaving(false);
     }

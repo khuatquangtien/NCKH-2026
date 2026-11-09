@@ -48,10 +48,13 @@ public class Project {
     @Column(length = 20)
     private ProjectStatus status;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @Column(nullable = false, length = 100)
     private String faculty;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)  
     @JoinColumn(name = "leader_id", nullable = false)
     private Lecturer leader;
 
@@ -172,5 +175,13 @@ public class Project {
 
     public void setMembers(List<ProjectMember> members) {
         this.members = members;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 }

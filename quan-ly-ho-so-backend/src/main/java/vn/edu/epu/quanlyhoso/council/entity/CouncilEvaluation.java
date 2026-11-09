@@ -28,6 +28,9 @@ public class CouncilEvaluation {
     @Column(name = "project_id", nullable = false)
     private Long projectId;
 
+    @Column(name = "evaluator_id", nullable = false)
+    private Long evaluatorId;
+
     @Column(precision = 4, scale = 2)
     private BigDecimal score;
 
@@ -54,6 +57,8 @@ public class CouncilEvaluation {
     public void setCouncilId(Long councilId) { this.councilId = councilId; }
     public Long getProjectId() { return projectId; }
     public void setProjectId(Long projectId) { this.projectId = projectId; }
+    public Long getEvaluatorId() { return evaluatorId; }
+    public void setEvaluatorId(Long evaluatorId) { this.evaluatorId = evaluatorId; }
     public BigDecimal getScore() { return score; }
     public void setScore(BigDecimal score) { this.score = score; }
     public EvaluationLevel getGrade() { return grade; }

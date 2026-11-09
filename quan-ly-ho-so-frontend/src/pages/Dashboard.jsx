@@ -37,9 +37,9 @@ export default function Dashboard() {
     {
       key: "/dashboard/councils",
       icon: <SafetyCertificateOutlined />,
-      label: "Hội đồng",
+      label: isAdmin ? "Quản lý hội đồng" : "Hội đồng của tôi",
     },
-    {
+    !isAdmin && {
       key: "/dashboard/profile",
       icon: <UserOutlined />,
       label: "Hồ sơ cá nhân",

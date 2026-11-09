@@ -1,14 +1,17 @@
 import { useEffect } from "react";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import authApi from "../api/authApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const location = useLocation();
+  const { fetchUserProfile } = useAuth();
+  // Tên đăng nhập được truyền sang từ trang đăng ký (nếu có)
+  const registeredUsername = location.state?.username;
   // Nếu đã đăng nhập, tự động chuyển hướng vào dashboard
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,12 +35,7 @@ export default function LoginPage() {
         localStorage.setItem("token", response.token);
         localStorage.setItem("Role", response.role);
         message.success("Đăng nhập thành công!");
-        setUser({
-          username: values.username,
-          role: {
-            name: response.role,
-          },
-        });
+        await fetchUserProfile();
         navigate("/dashboard"); // Chuyển hướng đến trang dashboard sau khi đăng nhập thành công
       }
     } catch (error) {
@@ -68,7 +66,12 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Form name="login" onFinish={onFinish} layout="vertical">
+        <Form
+          name="login"
+          onFinish={onFinish}
+          layout="vertical"
+          initialValues={{ username: registeredUsername }}
+        >
           <Form.Item
             name="username"
             rules={[{ required: true, message: "Vui lòng nhập tài khoản!" }]}
@@ -97,6 +100,11 @@ export default function LoginPage() {
             </Button>
           </Form.Item>
         </Form>
+
+        <div style={{ textAlign: "center" }}>
+          <Text type="secondary">Chưa có tài khoản? </Text>
+          <Link to="/register">Đăng ký tài khoản</Link>
+        </div>
       </Card>
     </div>
   );

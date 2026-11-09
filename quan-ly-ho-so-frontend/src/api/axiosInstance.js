@@ -2,7 +2,7 @@ import axios from "axios";
 
 // 1. Tạo một bản sao (instance) của Axios với cấu hình mặc định
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8080/api", // Địa chỉ cổng Backend Spring Boot của bạn
+  baseURL: "/api", // Vite proxy chuyển tiếp /api sang Backend Spring Boot (cổng 8082), xem vite.config.js
   headers: {
     "Content-Type": "application/json",
   },

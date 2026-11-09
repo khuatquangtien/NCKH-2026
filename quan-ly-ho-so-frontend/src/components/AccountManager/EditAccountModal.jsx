@@ -12,6 +12,7 @@ import {
 } from "antd";
 import { MailOutlined, UserOutlined } from "@ant-design/icons";
 import adminApi from "../../api/adminApi";
+import { showApiError } from "../../utils/apiError";
 
 const roleIds = { ADMIN: 1, LECTURER: 2, COUNCIL: 3, COUNCIL_MEMBER: 3 };
 
@@ -41,11 +42,7 @@ export default function EditAccountModal({
       onClose();
       onSuccess();
     } catch (error) {
-      message.error(
-        typeof error.response?.data === "string"
-          ? error.response.data
-          : "Không thể cập nhật tài khoản.",
-      );
+      showApiError(error, "Không thể cập nhật tài khoản.");
     } finally {
       setSaving(false);
     }

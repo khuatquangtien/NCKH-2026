@@ -92,10 +92,11 @@ CREATE TABLE `council_evaluations` (
   `project_id` int NOT NULL,
   `score` decimal(4,2) DEFAULT NULL,
   `grade` enum('EXCELLENT','GOOD','PASSED','FAILED') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `evaluator_id` int NOT NULL,
   `meeting_minutes` text COLLATE utf8mb4_unicode_ci,
   `evaluated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `project_id` (`project_id`),
+  UNIQUE KEY `uk_evaluation_member` (`council_id`,`project_id`,`evaluator_id`),
   KEY `council_id` (`council_id`),
   CONSTRAINT `council_evaluations_ibfk_1` FOREIGN KEY (`council_id`) REFERENCES `councils` (`id`),
   CONSTRAINT `council_evaluations_ibfk_2` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`)
@@ -148,6 +149,7 @@ DROP TABLE IF EXISTS `councils`;
 CREATE TABLE `councils` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'ACTIVE',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -209,6 +211,7 @@ CREATE TABLE `papers` (
   `journal_ranking` enum('SCOPUS','ISI','DOMESTIC') COLLATE utf8mb4_unicode_ci NOT NULL,
   `status` enum('PENDING','APPROVED','REJECTED') COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
   `creator_id` int NOT NULL,
+  `rejection_reason` varchar(500) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `creator_id` (`creator_id`),
@@ -360,7 +363,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'ADMIN'),(3,'COUNCIL'),(2,'LECTURER');
+INSERT INTO `roles` VALUES (1,'ADMIN'),(2,'LECTURER');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 

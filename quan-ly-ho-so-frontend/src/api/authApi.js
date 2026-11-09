@@ -6,6 +6,7 @@ const authApi = {
     return axiosInstance.post(url, data);
   },
   register: (data) => axiosInstance.post("/auth/register", data),
+  getMe: () => axiosInstance.get("/auth/me"),
 };
 
 export default authApi;

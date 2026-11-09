@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import vn.edu.epu.quanlyhoso.auth.repository.AccountRepository;
 
 @Configuration
-@RequiredArgsConstructor
+@RequiredArgsConstructor 
 public class ApplicationConfig {
     private final AccountRepository repository;
 

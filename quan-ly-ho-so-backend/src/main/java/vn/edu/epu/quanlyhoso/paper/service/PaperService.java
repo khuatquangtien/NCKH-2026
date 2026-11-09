@@ -27,9 +27,9 @@ public interface PaperService {
     void removePaper(int id);
 
     /**
-     * Admin xác thực bài báo - phê duyệt hoặc từ chối
+     * Admin xác thực bài báo - phê duyệt hoặc từ chối kèm lý do
      */
-    void verifyPaper(int id, PaperStatus status);
+    void verifyPaper(int id, PaperStatus status, String rejectionReason);
 
     /**
      * Lấy thông tin chi tiết một bài báo theo id
@@ -45,4 +45,5 @@ public interface PaperService {
      * Lấy danh sách các bài báo đang chờ duyệt để Admin kiểm tra
      */
     List<Paper> getAllPendingPapers();
+    List<Paper> getMyPapers();
 }

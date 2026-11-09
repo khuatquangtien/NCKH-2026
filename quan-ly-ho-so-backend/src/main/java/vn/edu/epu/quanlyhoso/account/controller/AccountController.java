@@ -2,7 +2,6 @@ package vn.edu.epu.quanlyhoso.account.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,30 +20,30 @@ import vn.edu.epu.quanlyhoso.auth.dto.response.AccountResponse;
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
 public class AccountController {
-	
-    private  final AccountService accountService;
-    
-    
-  //xoa tài khoản ( admin)
+
+    private final AccountService accountService;
+
+    // Xóa tài khoản (ADMIN)
     @DeleteMapping("/{id}")
-    public void DeleteAccount(@PathVariable Integer id) {
-    	accountService.deleteById(id);
+    public ResponseEntity<Void> deleteAccount(@PathVariable Integer id) {
+        accountService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
-    // lấy tài khoản tất cả người dùng
+
+    // Lấy danh sách tất cả tài khoản
     @GetMapping("/users")
-    public List<AccountResponse> GetAllAccount(){
-    	return accountService.GetAllAccount();
+    public ResponseEntity<List<AccountResponse>> getAllAccounts() {
+        return ResponseEntity.ok(accountService.getAllAccounts());
     }
-    
-    // sửa tất cả 
+
+    // Sửa thông tin tài khoản
     @PutMapping("/user/{id}")
-    public ResponseEntity<?> updateAccount(@PathVariable Integer id, @RequestBody UpdateAccountRequest request  ){
-    	try {
-			accountService.updateAccount(id, request);
-			return ResponseEntity.ok("Đã cập nhật tài khoản");
-		} catch (Exception e) {
-			// TODO: handle exception
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-    }	
-}					
+    public ResponseEntity<?> updateAccount(@PathVariable Integer id, @RequestBody UpdateAccountRequest request) {
+        try {
+            accountService.updateAccount(id, request);
+            return ResponseEntity.ok("Đã cập nhật tài khoản");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}

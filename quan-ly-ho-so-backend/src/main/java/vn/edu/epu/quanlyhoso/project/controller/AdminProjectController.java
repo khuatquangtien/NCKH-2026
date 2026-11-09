@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import vn.edu.epu.quanlyhoso.project.dto.request.UpdateProjectBudgetRequest;
 import vn.edu.epu.quanlyhoso.project.dto.request.UpdateProjectStatusRequest;
@@ -25,6 +26,7 @@ import vn.edu.epu.quanlyhoso.search.dto.ProjectSearchIndexRebuildResponse;
 
 @RestController
 @RequestMapping("/api/admin/projects")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class AdminProjectController {
 
     private final ProjectService projectService;
@@ -46,7 +48,6 @@ public class AdminProjectController {
             @RequestParam(required = false) BigDecimal maxEstimatedBudget,
             @RequestParam(required = false) BigDecimal minApprovedBudget,
             @RequestParam(required = false) BigDecimal maxApprovedBudget) {
-        // TODO: Restrict this operation to ROLE_ADMIN after Security module is merged.
         return ResponseEntity.ok(projectService.searchProjects(
                 status,
                 faculty,
@@ -59,7 +60,6 @@ public class AdminProjectController {
 
     @PostMapping("/search-index/rebuild")
     public ResponseEntity<ProjectSearchIndexRebuildResponse> rebuildProjectSearchIndex() {
-        // TODO: Restrict this operation to ROLE_ADMIN after Security module is merged.
         return ResponseEntity.ok(projectSearchIndexService.rebuildIndex());
     }
 
@@ -87,4 +87,3 @@ public class AdminProjectController {
         return ResponseEntity.ok(projectService.updateApprovedBudget(projectId, request));
     }
 }
-

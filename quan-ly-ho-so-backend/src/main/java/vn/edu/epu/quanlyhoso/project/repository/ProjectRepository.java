@@ -17,4 +17,5 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
     List<Project> findByTitleContainingIgnoreCase(String title);
 
     List<Project> findByLeaderId(Integer leaderId);
+    long countByStatus(ProjectStatus status);
 }

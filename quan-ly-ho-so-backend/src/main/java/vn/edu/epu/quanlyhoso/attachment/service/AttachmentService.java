@@ -86,6 +86,15 @@ public class AttachmentService {
     public List<Attachment> findByProjectId(Long projectId) {
         return attachmentRepository.findByProjectId(projectId);
     }
+    public List<Attachment> findByPaperId(Long paperId) { return attachmentRepository.findByPaperId(paperId); }
+
+    @Transactional
+    public void delete(Long id) {
+        Attachment attachment = findAttachmentById(id);
+        try { Files.deleteIfExists(Paths.get(attachment.getFilePath())); }
+        catch (IOException exception) { throw new IllegalStateException("Cannot delete file", exception); }
+        attachmentRepository.delete(attachment);
+    }
 
     private void createUploadDirectory() {
         try {

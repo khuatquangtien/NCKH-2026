@@ -22,6 +22,9 @@ public class Council {
     @Column(nullable = false, length = 150)
     private String name;
 
+    @Column(nullable = false, length = 20)
+    private String status = "ACTIVE";
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -36,6 +39,8 @@ public class Council {
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

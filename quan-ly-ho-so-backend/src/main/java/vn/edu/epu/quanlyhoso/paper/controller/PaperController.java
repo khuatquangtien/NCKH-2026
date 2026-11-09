@@ -3,7 +3,6 @@ package vn.edu.epu.quanlyhoso.paper.controller;
 import vn.edu.epu.quanlyhoso.paper.entity.Paper;
 import vn.edu.epu.quanlyhoso.paper.entity.PaperStatus;
 import vn.edu.epu.quanlyhoso.paper.service.PaperService;
-import vn.edu.epu.quanlyhoso.paper.service.PaperServiceImpl;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +17,8 @@ import java.util.List;
 @RequestMapping("/api/papers")
 public class PaperController {
     
-    private PaperService paperService = new PaperServiceImpl();
+    private final PaperService paperService;
+    public PaperController(PaperService paperService) { this.paperService = paperService; }
 
     /**
      * API: Giảng viên khai báo bài báo mới
@@ -27,9 +27,7 @@ public class PaperController {
     @PostMapping
     public ResponseEntity<?> declareNewPaper(@RequestBody Paper paper) {
         try {
-            // TỰ ĐỘNG GÁN TRẠNG THÁI PENDING KHI KHAI BÁO MỚI
             paper.setStatus(PaperStatus.PENDING);
-
             paperService.declareNewPaper(paper);
             return ResponseEntity.ok("Thành công: Bài báo đã được khai báo");
         } catch (Exception e) {
@@ -44,7 +42,6 @@ public class PaperController {
     @PutMapping("/{id}")
     public ResponseEntity<?> editPaper(@PathVariable int id, @RequestBody Paper paper) {
         try {
-            // Đảm bảo ID từ URL được gán chính xác vào đối tượng Model
             paper.setId(id); 
             paperService.editPaper(paper);
             return ResponseEntity.ok("Thành công: Bài báo đã được cập nhật");
@@ -68,13 +65,16 @@ public class PaperController {
     }
 
     /**
-     * API: Admin xác thực bài báo (phê duyệt/từ chối)
-     * URL: PATCH http://localhost:8080/api/papers/{id}/verify?status=APPROVED hoặc REFUSED
+     * API: Admin xác thực bài báo (phê duyệt/từ chối kèm lý do)
+     * URL: PATCH http://localhost:8080/api/papers/{id}/verify?status=APPROVED&reason=...
      */
     @PatchMapping("/{id}/verify")
-    public ResponseEntity<?> verifyPaper(@PathVariable int id, @RequestParam PaperStatus status) {
+    public ResponseEntity<?> verifyPaper(
+            @PathVariable int id,
+            @RequestParam PaperStatus status,
+            @RequestParam(required = false) String reason) {
         try {
-            paperService.verifyPaper(id, status);
+            paperService.verifyPaper(id, status, reason);
             return ResponseEntity.ok("Thành công: Bài báo đã được xác thực với trạng thái " + status);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi xác thực bài báo: " + e.getMessage());
@@ -115,6 +115,11 @@ public class PaperController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Lỗi khi lấy danh sách bài báo: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyPapers() {
+        return ResponseEntity.ok(paperService.getMyPapers());
     }
 
     /**

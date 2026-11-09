@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from "react";
 // Import axiosClient mà bạn đã cấu hình sẵn
-import axiosClient from "../api/axiosInstance";
+import authApi from "../api/authApi";
 
 // 1. Khởi tạo Context
 export const AuthContext = createContext();
@@ -10,25 +10,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Lưu thông tin người dùng
   const [loading, setLoading] = useState(true); // Trạng thái chờ gọi API
   // Hàm gọi API lấy thông tin người dùng đang đăng nhập
-  const fetchUserProfile = async (role) => {
+  const fetchUserProfile = async () => {
     // console.log("role: ", role);
     try {
-      if (role === "ADMIN") {
-        const adminUser = {
-          username: "Administrator",
-          role: {
-            name: "ADMIN",
-          },
-        };
-        setUser(adminUser);
-        setLoading(false);
-        return;
-      }
-      // LƯU Ý: Thay '/profile/me' bằng đúng đường dẫn API lấy profile của backend bạn
-      const response = await axiosClient.get("/profile/me");
+      const response = await authApi.getMe();
       // console.log("response: ", response);
       // Tùy thuộc vào cách axiosClient của bạn trả về data, có thể chỉ là `response` hoặc `response.data`
-      setUser(response);
+      setUser({ ...response, id: response.lecturerId, role: { name: response.role } });
       // console.log("Fetched user profile:", response);
     } catch (error) {
       console.error("Lỗi xác thực hoặc chưa đăng nhập:", error);
@@ -42,10 +30,9 @@ export const AuthProvider = ({ children }) => {
   // Tự động chạy một lần khi người dùng mở trang web
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedRole = localStorage.getItem("Role");
     // console.log(" ", role);
     if (token) {
-      fetchUserProfile(storedRole);
+      fetchUserProfile();
     } else {
       setLoading(false);
     }

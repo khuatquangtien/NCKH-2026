@@ -1,21 +1,35 @@
 package vn.edu.epu.quanlyhoso.paper.entity;
 
 import java.sql.Timestamp;
+import jakarta.persistence.*;
 
 /**
  * Lớp thực thể Paper - đại diện cho một bài báo khoa học
  * Chứa các thuộc tính tương ứng với các cột trong bảng papers của Database
  */
+@Entity
+@Table(name = "papers")
 public class Paper {
     
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @Column(nullable = false)
     private String title;
+    @Column(name = "journal_name", nullable = false)
     private String journalName;
+    @Column(name = "publication_year", nullable = false)
     private int publicationYear;
+    @Column(name = "issn_isbn")
     private String issnIsbn;
+    @Enumerated(EnumType.STRING) @Column(name = "journal_ranking", nullable = false)
     private JournalRanking journalRanking;
+    @Enumerated(EnumType.STRING)
     private PaperStatus status;
+    @Column(name = "creator_id", nullable = false)
     private int creatorId;
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
+    @Column(name = "created_at", insertable = false, updatable = false)
     private Timestamp createdAt;
 
     /**
@@ -121,4 +135,6 @@ public class Paper {
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 }

@@ -14,6 +14,8 @@ import vn.edu.epu.quanlyhoso.auth.entity.*;
 public interface AccountRepository extends JpaRepository<Account, Integer> {
     //Tìm hồ sơ dựa vào username
     Optional<Account> findByUsername(String username);
+    Optional<Account> findByEmail(String email);
+    long countByIsActiveTrue();
     // xoá tài khoản
     void deleteByid(Integer id);
     

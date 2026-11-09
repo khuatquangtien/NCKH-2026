@@ -52,6 +52,7 @@ public class ProjectMapper {
         response.setEstimatedBudget(project.getEstimatedBudget());
         response.setApprovedBudget(project.getApprovedBudget());
         response.setStatus(project.getStatus());
+        response.setRejectionReason(project.getRejectionReason());
         response.setFaculty(project.getFaculty());
         response.setCreatedAt(project.getCreatedAt());
 

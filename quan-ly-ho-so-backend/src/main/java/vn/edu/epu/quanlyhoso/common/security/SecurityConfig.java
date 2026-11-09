@@ -34,43 +34,33 @@ public class SecurityConfig {
 
             .csrf(csrf -> csrf.disable()) // Tắt bảo vệ CSRF vì xài JWT Token
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/error").permitAll() // ĐẶC BIỆT QUAN TRỌNG: Thả cửa cho mọi API bắt đầu bằng /api/auth (Login)
-                // 2. Khu vực Test:
+                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                .requestMatchers("/error").permitAll()
                 // Chỉ dành cho người có Role là ADMIN
                 .requestMatchers("/api/test/admin").hasAuthority("ADMIN")
-                // Chỉ có admin mới là người thay đổi được quyền
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN") 
-                .requestMatchers("/api/profile/me").permitAll() // T
-                // Dành cho bất cứ ai đã đăng nhập (Có Token)
+                .requestMatchers("/api/profile/me").authenticated()
                 .requestMatchers("/api/test/user").authenticated()
                 .requestMatchers("/api/accounts/**").hasAnyAuthority("ADMIN")
-                .anyRequest().authenticated() // TẤT CẢ các API còn lại bắt buộc phải có Token hợp lệ mới cho vào
+                .anyRequest().authenticated()
             )
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không lưu phiên (Session) trên Server
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider)
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);// Xếp ông bảo vệ JWT lên đầu hàng;
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Cho phép TẤT CẢ các nguồn (Origin) truy cập
-        configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:[*]")); 
-        
-        // Cho phép tất cả các phương thức HTTP (GET, POST, PUT, DELETE, v.v.)
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); 
-        
-        // Cho phép gửi kèm tất cả các loại Header (bao gồm cả header "Authorization" chứa JWT)
         configuration.setAllowedHeaders(Collections.singletonList("*")); 
-        
-        // Cho phép trình duyệt gửi Cookie hoặc thông tin xác thực kèm theo (rất cần cho JWT/Session)
         configuration.setAllowCredentials(true); 
         
-        // Áp dụng cấu hình này cho TOÀN BỘ các API trong hệ thống
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
