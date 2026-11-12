@@ -12,7 +12,7 @@ export default function SystemInfoCard({ isAdmin }) {
           <div className="system-info-item">
             <CheckCircleOutlined />
             <div>
-              <strong>Kết nối API</strong>
+              <strong>Trạng thái </strong>
               <span>Đang hoạt động</span>
             </div>
           </div>

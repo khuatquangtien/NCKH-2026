@@ -46,31 +46,25 @@ public class AuthService {
 
     // PHẦN 2: HÀM LOGIN
     public AuthResponse authenticate(AuthRequest request) {
-        // 1. Quăng vào máy xác thực. Sai mật khẩu là nó văng Exception ngay chỗ này
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()));
 
-        // 2. Mật khẩu đúng rồi thì lôi tài khoản từ DB lên
         var user = repository.findByUsername(request.getUsername())
                 .orElseThrow();
 
-        // 3. Móc cái quyền (ROLE) ra nhét vào Extra Claims
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", user.getRole().getRoleName());
 
-        // 4. In vé (Token)
         var jwtToken = jwtService.generateToken(extraClaims, user);
 
-        // 5. Đóng gói lại gửi về cho Controller
         return new AuthResponse(jwtToken, user.getRole().getRoleName());
     }
 
     // PHẦN 3: HÀM REGISTER
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // 1. Check xem Username đã bị thằng nào lấy mất chưa
         if (repository.findByUsername(request.getUsername()).isPresent()) {
             throw new BusinessException("Tên đăng nhập đã tồn tại trong hệ thống!");
         }

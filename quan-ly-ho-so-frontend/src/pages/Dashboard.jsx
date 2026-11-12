@@ -21,6 +21,14 @@ export default function Dashboard() {
   useEffect(() => {
     if (!localStorage.getItem("token")) navigate("/login", { replace: true });
   }, [navigate]);
+  // Token hết hạn / không hợp lệ: getMe thất bại → quay về trang đăng nhập
+  useEffect(() => {
+    if (!loading && !user) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("Role");
+      navigate("/login", { replace: true });
+    }
+  }, [loading, user, navigate]);
   const isAdmin = user?.role?.name === "ADMIN";
   const items = [
     { key: "/dashboard", icon: <HomeOutlined />, label: "Tổng quan" },
@@ -105,7 +113,8 @@ export default function Dashboard() {
           </Button>
         </Header>
         <Content className="app-content">
-          <Outlet />
+          {/* Chờ biết role xong mới render trang con, tránh gọi nhầm API của giảng viên (/me) khi là ADMIN */}
+          {loading || !user ? <Skeleton active /> : <Outlet />}
         </Content>
       </Layout>
     </Layout>
