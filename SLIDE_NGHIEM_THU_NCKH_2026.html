@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo Cáo Nghiệm Thu Đề Tài NCKH 2026 - Apache Lucene & Quản Lý Hồ Sơ Khoa Học</title>
+  <style>
+    :root {
+      --primary: #0f2b5c;
+      --primary-light: #1e3a8a;
+      --accent: #0284c7;
+      --accent-cyan: #06b6d4;
+      --accent-gold: #f59e0b;
+      --accent-green: #10b981;
+      --dark: #0f172a;
+      --gray-light: #f8fafc;
+      --gray-border: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #090d16;
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Control Bar */
+    .top-bar {
+      height: 52px;
+      background: #0b1329;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      color: #94a3b8;
+      font-size: 14px;
+      z-index: 100;
+    }
+    .top-left { display: flex; align-items: center; gap: 12px; font-weight: 600; color: #e2e8f0; }
+    .top-left .badge {
+      background: var(--primary-light);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .top-center { font-weight: 500; color: #38bdf8; }
+    .top-controls { display: flex; align-items: center; gap: 10px; }
+    .btn {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #334155; color: #fff; }
+    .btn-primary { background: #0284c7; border-color: #0284c7; color: #fff; }
+    .btn-primary:hover { background: #0369a1; }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 4px;
+      background: #1e293b;
+      width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      width: 5%;
+      transition: width 0.3s ease;
+    }
+
+    /* Slide Stage */
+    .stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+    .slide-card {
+      width: 1280px;
+      max-width: 96vw;
+      height: 720px;
+      max-height: 86vh;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide-card.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.985) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Slide Header */
+    .slide-header {
+      padding: 20px 36px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .slide-subtitle {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .slide-title {
+      font-size: 23px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Slide Body */
+    .slide-body {
+      flex: 1;
+      padding: 24px 36px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Slide Footer */
+    .slide-footer {
+      height: 44px;
+      padding: 0 36px;
+      background: #f8fafc;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Grid Layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 100%; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; height: 100%; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 18px; height: 100%; }
+
+    /* Card Box */
+    .card-box {
+      background: #f8fafc;
+      border: 1px solid var(--gray-border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-box.accent {
+      background: #f0f9ff;
+      border-color: #bae6fd;
+    }
+    .card-box h3 {
+      font-size: 16px;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-box.accent h3 { color: var(--accent); }
+    .card-box ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      color: var(--text-main);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .card-box ul li { margin-bottom: 6px; }
+
+    /* Title Slide Specific */
+    .title-slide {
+      background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #1e3a8a 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+      height: 100%;
+    }
+    .title-slide .uni-header {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #93c5fd;
+      margin-bottom: 12px;
+    }
+    .title-slide .badge-session {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .title-slide .project-title {
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1.4;
+      max-width: 1050px;
+      color: #ffffff;
+      margin-bottom: 30px;
+    }
+    .title-slide .meta-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 18px 28px;
+      border-radius: 12px;
+      max-width: 950px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    /* Agenda List */
+    .agenda-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+      height: 100%;
+    }
+    .agenda-item {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: #f8fafc;
+      border: 1px solid var(--gray-border);
+      padding: 14px 20px;
+      border-radius: 10px;
+    }
+    .agenda-item.active {
+      background: #f0f9ff;
+      border-color: #7dd3fc;
+    }
+    .agenda-num {
+      width: 38px;
+      height: 38px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .agenda-item.active .agenda-num { background: var(--accent); }
+    .agenda-title { font-size: 15px; font-weight: 700; color: var(--primary); }
+    .agenda-desc { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Tables */
+    .table-custom {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13.5px;
+    }
+    .table-custom th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .table-custom td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--gray-border);
+    }
+    .table-custom tr:nth-child(even) td { background: #f8fafc; }
+    .table-custom tr:hover td { background: #f0f9ff; }
+
+    /* Print settings for PDF export */
+    @media print {
+      @page {
+        size: 1280px 720px;
+        margin: 0;
+      }
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      html, body {
+        width: 1280px !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+      script, style, link, header, .top-bar, .progress-bar { display: none !important; }
+      .stage {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+        width: 1280px !important;
+        height: auto !important;
+      }
+      .slide-card {
+        display: flex !important;
+        width: 1280px !important;
+        height: 718px !important;
+        min-width: 1280px !important;
+        max-width: 1280px !important;
+        max-height: 718px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+      }
+      .slide-card:not(:last-child) {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .slide-card:last-child, #slide-20 {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        margin-bottom: 0 !important;
+      }
+      .slide-body {
+        overflow: hidden !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-bar">
+    <div class="top-left">
+      <span class="badge">EPU 2026</span>
+      <span>HỘI ĐỒNG NGHIỆM THU ĐỀ TÀI NCKH CẤP TRƯỜNG</span>
+    </div>
+    <div class="top-center" id="slide-indicator">Trang 1 / 20</div>
+    <div class="top-controls">
+      <button class="btn" onclick="prevSlide()" title="Phím mũi tên trái (←)">◀ Trang trước</button>
+      <button class="btn btn-primary" onclick="nextSlide()" title="Phím mũi tên phải (→) hoặc Space">Trang sau ▶</button>
+      <button class="btn" onclick="toggleFullScreen()" title="Phím F">⛶ Toàn màn hình</button>
+      <button class="btn" onclick="window.print()" title="In ra PDF">🖨️ Xuất PDF</button>
+    </div>
+  </header>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- Main Slide Stage -->
+  <main class="stage">
+
+    <!-- SLIDE 1: TRANG TIÊU ĐỀ -->
+    <div class="slide-card active" id="slide-1">
+      <div class="slide-body title-slide">
+        <div class="uni-header">BỘ CÔNG THƯƠNG — TRƯỜNG ĐẠI HỌC ĐIỆN LỰC — KHOA CÔNG NGHỆ THÔNG TIN</div>
+        <div class="badge-session">BÁO CÁO NGHIỆM THU ĐỀ TÀI NCKH NĂM 2026</div>
+        <h1 class="project-title">
+          NGHIÊN CỨU NỀN TẢNG QUẢN LÝ THÔNG ĐIỆP APACHE LUCENE VÀ CÁC KỸ THUẬT LẬP TRÌNH AN TOÀN ỨNG DỤNG TRONG PHÁT TRIỂN THỬ NGHIỆM HỆ THỐNG THÔNG TIN HỖ TRỢ QUẢN LÝ HỒ SƠ KHOA HỌC CÁN BỘ CỦA MỘT ĐƠN VỊ
+        </h1>
+        <div class="meta-box">
+          <div class="meta-item">
+            <strong>Mã số đề tài:</strong> DTNH../2026<br>
+            <strong>Chủ nhiệm đề tài:</strong> Khuất Quang Tiến (Lớp D18CNPM2 - MSSV: 23810310413)<br>
+            <strong>Giảng viên hướng dẫn:</strong> ThS. Nguyễn Quỳnh Anh (Khoa CNTT - EPU)
+          </div>
+          <div class="meta-item">
+            <strong>Thời gian thực hiện:</strong> 06 tháng (05/2026 – 11/2026)<br>
+            <strong>Thành viên nghiên cứu:</strong> Vũ Tiến Mạnh, Nguyễn Xuân Đạt, Đinh Việt Dũng, Đinh Trọng Nghĩa, Hoàng Xuân Giao, Dương Tiến Chiến<br>
+            <strong>Địa điểm nghiệm thu:</strong> Hà Nội, năm 2026
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: NỘI DUNG BÁO CÁO (AGENDA) -->
+    <div class="slide-card" id="slide-2">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Kế hoạch báo cáo</div>
+          <h2 class="slide-title">Nội Dung Báo Cáo Nghiệm Thu Đề Tài</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="agenda-list">
+          <div class="agenda-item">
+            <div class="agenda-num">01</div>
+            <div>
+              <div class="agenda-title">Phần 1: Đặt Vấn Đề, Mục Tiêu & Đối Tượng Nghiên Cứu</div>
+              <div class="agenda-desc">Thực trạng quản lý hồ sơ tại đơn vị, tính cấp thiết và mục tiêu nghiên cứu của đề tài.</div>
+            </div>
+          </div>
+          <div class="agenda-item active">
+            <div class="agenda-num">02</div>
+            <div>
+              <div class="agenda-title">Phần 2: Nền Tảng Quản Lý & Tìm Kiếm Thông Tin Apache Lucene</div>
+              <div class="agenda-desc">Công nghệ chỉ mục đảo (Inverted Index), giải pháp tìm kiếm tiếng Việt thông minh, bộ lọc đa tiêu chí và cơ chế tự phục hồi.</div>
+            </div>
+          </div>
+          <div class="agenda-item active">
+            <div class="agenda-num">03</div>
+            <div>
+              <div class="agenda-title">Phần 3: Các Kỹ Thuật Lập Trình An Toàn Ứng Dụng (Secure Coding)</div>
+              <div class="agenda-desc">Tiếp cận Secure by Design, xác thực Stateless JWT, phân quyền RBAC 3 lớp và phòng chống các rủi ro OWASP Top 10:2021.</div>
+            </div>
+          </div>
+          <div class="agenda-item active">
+            <div class="agenda-num">04</div>
+            <div>
+              <div class="agenda-title">Phần 4: Phát Triển Thử Nghiệm Hệ Thống Quản Lý Hồ Sơ Khoa Học</div>
+              <div class="agenda-desc">Kiến trúc hệ thống ba tầng (React + Spring Boot + MySQL), 7 phân hệ nghiệp vụ số hóa và minh họa giao diện thực tế.</div>
+            </div>
+          </div>
+          <div class="agenda-item">
+            <div class="agenda-num">05</div>
+            <div>
+              <div class="agenda-title">Phần 5: Đánh Giá Thực Nghiệm & Báo Cáo Nghiệm Thu</div>
+              <div class="agenda-desc">Kiểm thử hiệu năng so sánh với MySQL LIKE, kiểm thử chức năng & bảo mật, đối chiếu 100% mục tiêu cam kết.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 2 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: BỐI CẢNH & TÍNH CẤP THIẾT -->
+    <div class="slide-card" id="slide-3">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 1: Đặt Vấn Đề</div>
+          <h2 class="slide-title">Bối Cảnh Thực Tế & Tính Cấp Thiết Của Đề Tài</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card-box">
+            <h3>Thực Trạng Tại Đơn Vị</h3>
+            <ul>
+              <li>Công tác quản lý hồ sơ NCKH của cán bộ, giảng viên tại Khoa/Trường hiện còn phân tán trên file Word, Excel hoặc giấy tờ truyền thống.</li>
+              <li>Khó khăn lớn trong việc theo dõi tiến độ thực hiện đề tài, tổng hợp giờ NCKH và quản lý các công trình công bố.</li>
+              <li>Quy trình nộp thuyết minh, phân công phản biện và chấm điểm hội đồng chưa được số hóa xuyên suốt.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Bất Cập Về Tìm Kiếm & Hiệu Năng</h3>
+            <ul>
+              <li>Các hệ thống hiện hành chủ yếu dùng câu lệnh SQL LIKE '%...%', buộc phải quét toàn bộ bảng (Full Table Scan).</li>
+              <li>Không hỗ trợ tốt tiếng Việt: người dùng gõ không dấu hoặc gõ sai dấu thanh thường không tìm thấy kết quả.</li>
+              <li>Thời gian phản hồi chậm, gây quá tải CPU của máy chủ cơ sở dữ liệu khi số lượng hồ sơ gia tăng.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Yêu Cầu Về An Toàn Thông Tin</h3>
+            <ul>
+              <li>Hồ sơ khoa học chứa tài sản trí tuệ và các công trình nghiên cứu chưa công bố, đòi hỏi tính bảo mật rất cao.</li>
+              <li>Nhiều phần mềm nội bộ chỉ kiểm tra phân quyền ở mức giao diện, tiềm ẩn nguy cơ truy cập trái phép và lộ lọt dữ liệu.</li>
+              <li>Cần áp dụng phương pháp lập trình an toàn (Secure by Design) ngay từ khâu thiết kế hệ thống.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 3 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: MỤC TIÊU & ĐỐI TƯỢNG NGHIÊN CỨU -->
+    <div class="slide-card" id="slide-4">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 1: Đặt Vấn Đề</div>
+          <h2 class="slide-title">Mục Tiêu, Đối Tượng & Phạm Vi Nghiên Cứu</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box accent">
+            <h3>Mục Tiêu Nghiên Cứu</h3>
+            <ul>
+              <li><strong>MỤC TIÊU KHOA HỌC:</strong></li>
+              <li>Nghiên cứu, làm chủ công nghệ chỉ mục đảo và tìm kiếm toàn văn của thư viện Apache Lucene.</li>
+              <li>Làm chủ và hệ thống hóa các kỹ thuật lập trình an toàn theo tiêu chuẩn OWASP Top 10:2021.</li>
+              <li style="margin-top: 10px;"><strong>MỤC TIÊU ỨNG DỤNG THỰC TIỄN:</strong></li>
+              <li>Phát triển phần mềm thử nghiệm "Hệ thống Quản lý Hồ sơ Khoa học" (quan-ly-ho-so) hoàn chỉnh.</li>
+              <li>Tích hợp cỗ máy tìm kiếm Lucene phản hồi dưới 10 mili-giây, hỗ trợ tìm kiếm tiếng Việt thông minh.</li>
+              <li>Đảm bảo an toàn thông tin nhiều tầng, sẵn sàng đưa vào áp dụng thử nghiệm tại đơn vị.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Đối Tượng & Phạm Vi Nghiên Cứu</h3>
+            <ul>
+              <li><strong>ĐỐI TƯỢNG NGHIÊN CỨU:</strong></li>
+              <li>Nền tảng quản lý thông điệp tìm kiếm Apache Lucene (phiên bản 9.x).</li>
+              <li>Các tiêu chuẩn lập trình an toàn: xác thực JWT, băm mật khẩu BCrypt, phân quyền RBAC và kiểm soát quyền sở hữu đối tượng.</li>
+              <li>Hồ sơ khoa học: lý lịch cán bộ, đề tài NCKH, bài báo công bố, hội đồng thẩm định và tệp minh chứng.</li>
+              <li style="margin-top: 10px;"><strong>PHẠM VI ÁP DỤNG:</strong></li>
+              <li>Đơn vị thử nghiệm: Khoa Công nghệ Thông tin – Trường Đại học Điện lực.</li>
+              <li>Thời gian thực hiện đề tài: 06 tháng (05/2026 – 11/2026).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 4 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: TỔNG QUAN NỀN TẢNG APACHE LUCENE -->
+    <div class="slide-card" id="slide-5">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 2: Nền Tảng Apache Lucene</div>
+          <h2 class="slide-title">Tổng Quan Về Nền Tảng Quản Lý Thông Điệp Apache Lucene</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box accent">
+            <h3>Bản Chất & Cơ Chế Chỉ Mục Đảo (Inverted Index)</h3>
+            <ul>
+              <li><strong>Bản chất của Apache Lucene:</strong> Là thư viện tìm kiếm toàn văn (Full-Text Search) mã nguồn mở hàng đầu thế giới viết bằng Java, đóng vai trò lõi cho các nền tảng như Elasticsearch, Apache Solr.</li>
+              <li><strong>Cơ chế chỉ mục đảo (Inverted Index):</strong> Thay vì tìm kiếm tuần tự từ văn bản sang từ khóa, Lucene ánh xạ ngược lại từ mỗi Từ khóa (Term) sang danh sách các Tài liệu (Doc ID) chứa từ khóa đó.</li>
+              <li>Cho phép truy vấn hàng trăm nghìn hồ sơ với độ phức tạp cực nhỏ O(1) hoặc O(log N).</li>
+              <li><strong>Nhúng trực tiếp (Embedded):</strong> Tích hợp ngay trong ứng dụng Spring Boot, không cần cụm máy chủ riêng, tiết kiệm tối đa RAM và tài nguyên đơn vị.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>So Sánh Lợi Thế Với Các Giải Pháp Khác</h3>
+            <ul>
+              <li><strong>So với câu lệnh SQL LIKE '%...%':</strong></li>
+              <li>SQL LIKE buộc CSDL quét từng dòng (Full Table Scan), làm tê liệt chỉ mục B-Tree và nghẽn CPU.</li>
+              <li>Lucene tra cứu qua bảng chỉ mục đảo, tốc độ nhanh hơn từ 35 đến 42 lần.</li>
+              <li><strong>So với hệ thống cụm Elasticsearch:</strong></li>
+              <li>Elasticsearch yêu cầu hạ tầng máy chủ lớn (tối thiểu 4GB-8GB RAM riêng), cấu hình mạng và bảo trì phức tạp.</li>
+              <li>Lucene nhúng tận dụng bộ nhớ trong của ứng dụng Java, triển khai nhẹ nhàng, không phát sinh chi phí hạ tầng.</li>
+              <li>=> Lucene là sự lựa chọn tối ưu và khả thi nhất cho hệ thống quản lý học thuật cấp đơn vị.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 5 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: GIẢI PHÁP TÌM KIẾM TIẾNG VIỆT THÔNG MINH -->
+    <div class="slide-card" id="slide-6">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 2: Nền Tảng Apache Lucene</div>
+          <h2 class="slide-title">Giải Pháp Tìm Kiếm Tiếng Việt Thông Minh & So Khớp Mờ</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box accent">
+            <h3>Giải Quyết Bài Toán Dấu Thanh Tiếng Việt</h3>
+            <ul>
+              <li><strong>Đặc thù ngôn ngữ tiếng Việt:</strong> Có hệ thống dấu thanh phong phú và ký tự đặc thù đ/Đ; người dùng thường gõ không dấu hoặc sai vị trí dấu.</li>
+              <li><strong>Giải pháp chuẩn hóa của đề tài:</strong> Xây dựng bộ chuẩn hóa dữ liệu tự động: tách dấu thanh, chuyển đổi ký tự đ/Đ và quy về chữ thường thống nhất.</li>
+              <li><strong>Kiến trúc trường dữ liệu kép (Dual-Field):</strong></li>
+              <li>- Lưu trữ trường gốc để hiển thị chính xác có dấu cho người dùng xem.</li>
+              <li>- Lưu trữ trường đã chuẩn hóa song song để phục vụ thuật toán tìm kiếm siêu tốc.</li>
+              <li>=> Người dùng gõ "nghien cuu" hay "nghiên cứu" đều trả về kết quả chính xác 100%.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>So Khớp Mờ Chống Lỗi Chính Tả (Fuzzy Search)</h3>
+            <ul>
+              <li><strong>Ứng dụng thuật toán khoảng cách Levenshtein:</strong> Tự động chấp nhận sai lệch 1 đến 2 ký tự khi người dùng gõ nhầm bàn phím.</li>
+              <li><strong>Cấu hình ngưỡng linh hoạt theo độ dài từ khóa:</strong></li>
+              <li>- Từ ngắn (dưới 4 ký tự): Khớp chính xác tuyệt đối.</li>
+              <li>- Từ trung bình (4–6 ký tự): Chấp nhận sai khác 1 ký tự.</li>
+              <li>- Từ dài (trên 6 ký tự): Chấp nhận sai khác tối đa 2 ký tự.</li>
+              <li><strong>Hiệu quả thực tế:</strong> Gõ nhầm "diejn luc" hoặc "dien lucj" -> Vẫn tìm thấy đúng đề tài về "Đại học Điện lực".</li>
+              <li>Giúp tỷ lệ tra cứu thành công tăng từ 62% (ở SQL LIKE) lên hơn 98.5%.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 6 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: BỘ LỌC ĐA TIÊU CHÍ -->
+    <div class="slide-card" id="slide-7">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 2: Nền Tảng Apache Lucene</div>
+          <h2 class="slide-title">Bộ Lọc Dữ Liệu Đa Tiêu Chí & Tra Cứu Nâng Cao</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box">
+            <h3>Tìm Kiếm Kết Hợp Đa Tiêu Chí (Boolean Query)</h3>
+            <ul>
+              <li>Cho phép người dùng kết hợp linh hoạt nhiều điều kiện tra cứu cùng lúc:</li>
+              <li>- Từ khóa trong tên hoặc tóm tắt đề tài.</li>
+              <li>- Tên cán bộ / chủ nhiệm đề tài.</li>
+              <li>- Năm thực hiện và cấp quản lý (Cấp Trường, Cấp Bộ, Cấp Nhà nước).</li>
+              <li>- Trạng thái đề tài (Đang thực hiện, Đã nghiệm thu, Chờ phê duyệt).</li>
+              <li><strong>Cơ chế xếp hạng độ tương quan (BM25 Scoring):</strong> Tài liệu khớp chính xác ở tiêu đề được gán trọng số ưu tiên cao nhất; khớp ở tóm tắt xếp hạng tiếp theo.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Lọc Phạm Vi Kinh Phí & Thời Gian Tối Ưu</h3>
+            <ul>
+              <li><strong>Vấn đề với dữ liệu số trong tìm kiếm văn bản:</strong> Nếu lưu kinh phí dạng chuỗi, phép so sánh sẽ bị sai quy luật toán học ("5 triệu" lớn hơn "10 triệu").</li>
+              <li><strong>Đánh chỉ mục số dạng điểm (Point Indexing):</strong> Toàn bộ số liệu kinh phí được quy đổi và đánh chỉ mục bằng cấu trúc điểm số nguyên trên cây BKD-Tree nhiều chiều.</li>
+              <li>Hỗ trợ kéo thanh lọc khoảng kinh phí mượt mà: "Lọc các đề tài có kinh phí từ 20 triệu đến 50 triệu đồng".</li>
+              <li><strong>Tốc độ phản hồi cực nhanh:</strong> Chỉ mất 6.8 mili-giây, nhanh gấp ~42 lần so với truy vấn SQL BETWEEN.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 7 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: ĐỒNG BỘ THỜI GIAN THỰC & CHỊU LỖI -->
+    <div class="slide-card" id="slide-8">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 2: Nền Tảng Apache Lucene</div>
+          <h2 class="slide-title">Cơ Chế Đồng Bộ Dữ Liệu Thời Gian Thực & Tự Phục Hồi</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box">
+            <h3>Đồng Bộ Dữ Liệu Thời Gian Thực</h3>
+            <ul>
+              <li><strong>Kiến trúc lưu trữ kép (MySQL + Lucene):</strong> MySQL đảm bảo tính toàn vẹn giao dịch (ACID) cho nghiệp vụ ghi; Lucene đảm bảo tốc độ phản hồi cực nhanh cho thao tác đọc.</li>
+              <li><strong>Đồng bộ tự động qua Entity Listeners:</strong> Mỗi khi cán bộ Thêm, Sửa hoặc Xóa hồ sơ:</li>
+              <li>1. Dữ liệu được lưu bền vững vào CSDL MySQL.</li>
+              <li>2. Kích hoạt bộ lắng nghe sự kiện để cập nhật hoặc xóa Document tương ứng trong chỉ mục Lucene tức thì.</li>
+              <li>3. Người dùng tìm kiếm thấy ngay dữ liệu mới nhất mà không cần tải lại trang.</li>
+              <li><strong>API Rebuild Index:</strong> Hỗ trợ Quản trị viên quét và xây dựng lại toàn bộ chỉ mục chỉ trong 2 giây.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Cơ Chế Dự Phòng & Tự Phục Hồi (Fault-Tolerant)</h3>
+            <ul>
+              <li><strong>Nguyên lý hoạt động không gián đoạn:</strong> Trong môi trường thực tế, file chỉ mục có thể gặp sự cố ngoài ý muốn (mất điện đột ngột, khóa tệp tin I/O...).</li>
+              <li><strong>Tự động chuyển hướng dự phòng (Automatic Fallback):</strong> Tầng dịch vụ tìm kiếm được bao bọc bởi cơ chế bắt ngoại lệ thông minh.</li>
+              <li>Nếu Lucene gặp sự cố:</li>
+              <li>1. Hệ thống tự động chuyển hướng sang câu lệnh SQL truy vấn trực tiếp vào CSDL MySQL.</li>
+              <li>2. Ghi nhật ký cảnh báo cho quản trị viên hệ thống.</li>
+              <li>3. Người dùng cuối vẫn nhận được kết quả bình thường mà không hề thấy lỗi màn hình.</li>
+              <li>=> Đảm bảo độ sẵn sàng dịch vụ (High Availability) liên tục 24/7.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 8 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: TIẾP CẬN SECURE BY DESIGN -->
+    <div class="slide-card" id="slide-9">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 3: Kỹ Thuật Lập Trình An Toàn</div>
+          <h2 class="slide-title">Tiếp Cận Lập Trình An Toàn: Nguyên Tắc "Secure By Design"</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box accent">
+            <h3>Triết Lý "Secure By Design"</h3>
+            <ul>
+              <li><strong>Thay đổi tư duy bảo mật:</strong></li>
+              <li>- Cách làm cũ: Viết phần mềm xong mới kiểm tra bảo mật và vá lỗi (chắp vá, chi phí cao và dễ sót lỗ hổng).</li>
+              <li>- Tiếp cận của đề tài: Đưa các yêu cầu an toàn thông tin vào ngay từ khâu thiết kế kiến trúc hệ thống.</li>
+              <li><strong>Các nguyên tắc bảo mật cốt lõi:</strong></li>
+              <li>1. <em>Phòng thủ nhiều lớp (Defense in Depth):</em> Bảo vệ từ Tầng mạng -> Tầng dịch vụ API -> Tầng nghiệp vụ -> Tầng dữ liệu.</li>
+              <li>2. <em>Đặc quyền tối thiểu (Least Privilege):</em> Người dùng chỉ được cấp đúng các quyền hạn tối thiểu cần thiết để làm việc.</li>
+              <li>3. <em>Không tin tưởng dữ liệu đầu vào:</em> Mọi dữ liệu gửi lên từ giao diện đều phải qua kiểm duyệt chặt chẽ.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Mô Hình Phòng Thủ Nhiều Lớp Của Hệ Thống</h3>
+            <ul>
+              <li><strong>Lớp 1: Tầng Trình Diễn (Frontend React):</strong> Tự động mã hóa ký tự nguy hiểm (Escape HTML) chống mã độc XSS; ẩn các nút chức năng theo vai trò.</li>
+              <li><strong>Lớp 2: Tầng Bộ Lọc Bảo Mật (Spring Security 6):</strong> Bộ lọc JwtAuthenticationFilter chặn đứng mọi yêu cầu không có chữ ký số hợp lệ.</li>
+              <li><strong>Lớp 3: Tầng Nghiệp Vụ & Quyền Sở Hữu:</strong> Kiểm tra quyền sửa/xóa hồ sơ ở mức từng đối tượng dữ liệu cụ thể (chống BOLA).</li>
+              <li><strong>Lớp 4: Tầng Truy Xuất Dữ Liệu (Database Access):</strong> Tham số hóa 100% câu lệnh truy vấn ngăn chặn tiêm nhiễm SQL Injection.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 9 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: XÁC THỰC JWT & MÃ HÓA BCRYPT -->
+    <div class="slide-card" id="slide-10">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 3: Kỹ Thuật Lập Trình An Toàn</div>
+          <h2 class="slide-title">Cơ Chế Xác Thực Không Trạng Thái JWT & Mã Hóa Mật Khẩu</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box accent">
+            <h3>Xác Thực Không Trạng Thái (Stateless JWT)</h3>
+            <ul>
+              <li><strong>Kiến trúc Stateless trong Spring Security 6:</strong> Máy chủ không lưu trữ Session trên bộ nhớ RAM. Giúp hệ thống hoạt động nhẹ nhàng, dễ mở rộng và không nghẽn bộ nhớ.</li>
+              <li><strong>Cấu trúc Token JWT:</strong></li>
+              <li>- Chứa thông tin tài khoản, vai trò và thời hạn hiệu lực (TTL).</li>
+              <li>- Ký điện tử bằng thuật toán HMAC-SHA256 (HS256) với khóa bí mật 256-bit được bảo vệ an toàn.</li>
+              <li><strong>Cơ chế hoạt động:</strong> Sau khi đăng nhập, Client nhận Token và tự động đính kèm vào Header <code>Authorization: Bearer &lt;token&gt;</code> trong mọi yêu cầu tiếp theo.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Bảo Vệ Mật Khẩu Với Thuật Toán Băm BCrypt</h3>
+            <ul>
+              <li><strong>Nguy cơ khi lưu trữ mật khẩu không an toàn:</strong> Tuyệt đối không bao giờ lưu mật khẩu dạng bản rõ (Plaintext) hoặc mã hóa MD5/SHA-1 vì rất dễ bị giải mã.</li>
+              <li><strong>Ứng dụng BCrypt có muối (Salted Hash):</strong></li>
+              <li>- Áp dụng BCryptPasswordEncoder với độ phức tạp cao (Work Factor = 10 rounds).</li>
+              <li>- Với mỗi mật khẩu, BCrypt tự động sinh chuỗi Salt ngẫu nhiên 128-bit độc lập.</li>
+              <li><strong>Lợi ích bảo mật:</strong> Cùng 1 mật khẩu của 2 người dùng khác nhau sẽ tạo ra 2 chuỗi băm hoàn toàn khác biệt. Vô hiệu hóa 100% các cuộc tấn công Rainbow Table.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 10 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 11: PHÂN QUYỀN RBAC ĐA CẤP -->
+    <div class="slide-card" id="slide-11">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 3: Kỹ Thuật Lập Trình An Toàn</div>
+          <h2 class="slide-title">Kiểm Soát Truy Cập & Phân Quyền RBAC Đa Cấp</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box">
+            <h3>Mô Hình Phân Quyền 3 Lớp Chặt Chẽ</h3>
+            <ul>
+              <li><strong>1. Lớp 1: Kiểm soát theo đường dẫn URL (AntMatchers):</strong> Phân chia các nhánh API công khai (/api/v1/auth/**) và các nhánh yêu cầu đăng nhập bắt buộc.</li>
+              <li><strong>2. Lớp 2: Kiểm soát theo phương thức (@PreAuthorize):</strong> Áp dụng chú thích kiểm tra vai trò tại từng hàm dịch vụ Backend:</li>
+              <li>- <code>@PreAuthorize("hasRole('ADMIN')")</code>: Chỉ quản trị viên được duyệt đề tài hoặc mở đợt đăng ký.</li>
+              <li>- <code>@PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")</code>: Cán bộ được cập nhật lý lịch khoa học.</li>
+              <li><strong>3. Lớp 3: Kiểm soát quyền sở hữu đối tượng:</strong> Ngăn chặn truy cập chéo dữ liệu của người khác.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>3 Nhóm Vai Trò Người Dùng Trong Hệ Thống</h3>
+            <ul>
+              <li><strong>1. Quản trị viên đơn vị (ADMIN):</strong> Quản lý danh mục tài khoản, phê duyệt đợt nộp đề tài, thành lập hội đồng đánh giá, phân công phản biện và trích xuất báo cáo thống kê toàn trường.</li>
+              <li><strong>2. Cán bộ Giảng viên (LECTURER):</strong> Quản lý lý lịch cá nhân, nộp thuyết minh đề tài, khai báo bài báo khoa học, theo dõi tiến độ và tải minh chứng nghiệm thu.</li>
+              <li><strong>3. Thành viên Hội đồng (COUNCIL):</strong> Đăng nhập xem hồ sơ thuyết minh được phân công, thực hiện chấm điểm trực tuyến và gửi nhận xét phản biện.</li>
+              <li>=> Phân định trách nhiệm rõ ràng, tránh xung đột quyền hạn.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 11 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 12: PHÒNG CHỐNG LỖ HỔNG OWASP TOP 10 -->
+    <div class="slide-card" id="slide-12">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 3: Kỹ Thuật Lập Trình An Toàn</div>
+          <h2 class="slide-title">Phòng Chống Các Rủi Ro Theo Chuẩn OWASP Top 10:2021</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box accent">
+            <h3>Chống SQLi, XSS & Lỗ Hổng Phân Quyền BOLA</h3>
+            <ul>
+              <li><strong>1. Phòng chống tiêm nhiễm SQL Injection (A03:2021):</strong> 100% câu lệnh truy vấn dữ liệu được thực hiện qua Spring Data JPA với cơ chế tham số hóa (Parameterized Query). Tuyệt đối không cộng chuỗi thô.</li>
+              <li><strong>2. Phòng chống tấn công XSS & Rà soát đầu vào:</strong> Kiểm duyệt dữ liệu bằng Jakarta Bean Validation (@NotBlank, @Size, @Pattern...). Tự động làm sạch dữ liệu trước khi hiển thị.</li>
+              <li><strong>3. Phòng chống lỗ hổng BOLA/IDOR (A01:2021):</strong> Lỗ hổng nguy hiểm khi người dùng đổi ID trên URL để xem/sửa hồ sơ người khác. Triển khai hàm kiểm tra bắt buộc <code>assertCanEdit(project, user)</code> để đảm bảo chỉ chính tác giả hoặc Admin mới có quyền thao tác.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Bảo Mật Cấu Hình & Toàn Vẹn Hệ Thống</h3>
+            <ul>
+              <li><strong>4. Bảo mật cấu hình an toàn (A05:2021):</strong> Tách riêng các thông số nhạy cảm (JWT Secret, Mật khẩu Database) ra Biến môi trường hệ thống. Không lưu mật khẩu trên Git.</li>
+              <li><strong>5. Cấu hình CORS & Phòng chống CSRF:</strong> Thiết lập chính sách CORS chỉ cho phép địa chỉ tên miền của trường và cổng Frontend hợp lệ truy cập API.</li>
+              <li><strong>6. Ghi nhật ký & Giám sát Audit Log (A09:2021):</strong> Ghi nhận đầy đủ thời gian, người thực hiện và IP đối với các thao tác quan trọng (duyệt đề tài, xóa hồ sơ, chấm điểm).</li>
+              <li>Đảm bảo tính minh bạch và có thể truy vết khi có sự cố.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 12 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 13: KIẾN TRÚC TỔNG THỂ HỆ THỐNG -->
+    <div class="slide-card" id="slide-13">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 4: Phát Triển Thử Nghiệm Hệ Thống</div>
+          <h2 class="slide-title">Kiến Trúc Tổng Thể Hệ Thống Quản Lý Hồ Sơ Khoa Học</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card-box">
+            <h3>Tầng Trình Diễn (Frontend)</h3>
+            <ul>
+              <li><strong>Nền tảng:</strong> Ứng dụng một trang (SPA) với React 18 và công cụ build Vite siêu tốc.</li>
+              <li><strong>Giao diện:</strong> Thiết kế hiện đại, đáp ứng tốt trên máy tính và thiết bị di động (Responsive).</li>
+              <li><strong>Quản lý trạng thái:</strong> React Context API lưu trữ phiên làm việc và Token an toàn.</li>
+              <li><strong>Trải nghiệm:</strong> Tương tác mượt mà, không bị tải lại toàn bộ trang web.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Tầng Dịch Vụ Nghiệp Vụ (Backend)</h3>
+            <ul>
+              <li><strong>Nền tảng:</strong> Ngôn ngữ Java 17 LTS kết hợp framework Spring Boot 3.x.</li>
+              <li><strong>Tổ chức mã nguồn:</strong> Cấu trúc Package-by-feature phân tách rõ ràng (auth, profile, project, paper, council, search).</li>
+              <li>Cung cấp hơn 60 API RESTful phục vụ kết nối dữ liệu an toàn.</li>
+              <li>Tích hợp bộ máy Lucene trực tiếp trong cùng quy trình xử lý, tối ưu tài nguyên tối đa.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Tầng Lưu Trữ & Bộ Nhớ Đệm</h3>
+            <ul>
+              <li><strong>CSDL Quan Hệ MySQL 8.0:</strong> Lưu trữ bền vững 13 thực thể dữ liệu theo chuẩn quan hệ ACID.</li>
+              <li><strong>Bộ Nhớ Đệm Redis Cache:</strong> Tích hợp Spring Data Redis, lưu cache số liệu Dashboard (<code>@Cacheable</code>, TTL 5 phút) giảm tải triệt để cho MySQL.</li>
+              <li><strong>Chỉ Mục Apache Lucene:</strong> Lưu trữ cấu trúc chỉ mục đảo trên bộ nhớ RAM / ổ đĩa SSD phục vụ tra cứu toàn văn siêu tốc.</li>
+              <li><strong>Cơ Chế Tự Phục Hồi:</strong> CacheErrorHandler tự động vượt lỗi khi Redis gián đoạn; Lucene tự động fallback sang MySQL khi có sự cố.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 13 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 14: 7 PHÂN HỆ NGHIỆP VỤ CỐT LÕI -->
+    <div class="slide-card" id="slide-14">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 4: Phát Triển Thử Nghiệm Hệ Thống</div>
+          <h2 class="slide-title">7 Phân Hệ Chức Năng Nghiệp Vụ Số Hóa Hoàn Chỉnh</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-4" style="height: 100%;">
+          <div class="card-box">
+            <h3>1. Quản Lý Hồ Sơ Cán Bộ & 2. Đề Tài NCKH</h3>
+            <ul>
+              <li><strong>Hồ sơ cán bộ:</strong> Số hóa lý lịch khoa học, học hàm, học vị, chuyên ngành và quá trình công tác.</li>
+              <li><strong>Đề tài NCKH:</strong> Quản lý vòng đời đề tài từ đăng ký, xét duyệt, nghiệm thu đến thanh quyết toán.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>3. Quản Lý Bài Báo & 4. Hội Đồng Thẩm Định</h3>
+            <ul>
+              <li><strong>Bài báo khoa học:</strong> Phân loại bài báo ISI/Scopus, tạp chí trong nước, hội nghị quốc tế và sách.</li>
+              <li><strong>Hội đồng thẩm định:</strong> Phân công hội đồng, chấm điểm trực tuyến và lưu biên bản đánh giá.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>5. Báo Cáo Thống Kê & 6. Quản Trị Hệ Thống</h3>
+            <ul>
+              <li><strong>Báo cáo & Giờ NCKH:</strong> Tự động tính quy đổi giờ nghiên cứu, kết xuất báo cáo kiểm định chất lượng.</li>
+              <li><strong>Quản trị hệ thống:</strong> Quản lý tài khoản, cấu hình vai trò và kiểm tra nhật ký truy cập (Audit Log).</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>7. Tìm Kiếm Thông Minh (Apache Lucene)</h3>
+            <ul>
+              <li>Tra cứu toàn văn siêu tốc, tìm kiếm tiếng Việt có dấu/không dấu, chống sai chính tả.</li>
+              <li>Bộ lọc đa tiêu chí trực quan theo năm, cấp quản lý và khoảng kinh phí thực hiện.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 14 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 15: QUY TRÌNH QUẢN LÝ VÒNG ĐỜI ĐỀ TÀI -->
+    <div class="slide-card" id="slide-15">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 4: Phát Triển Thử Nghiệm Hệ Thống</div>
+          <h2 class="slide-title">Quy Trình Quản Lý Vòng Đời Đề Tài NCKH Số Hóa</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="agenda-list">
+          <div class="agenda-item">
+            <div class="agenda-num">1</div>
+            <div>
+              <div class="agenda-title">Bước 1: Nộp Thuyết Minh Đề Tài Trực Tuyến</div>
+              <div class="agenda-desc">Giảng viên điền thông tin đề tài, mục tiêu, sản phẩm dự kiến và tải file đề cương lên hệ thống.</div>
+            </div>
+          </div>
+          <div class="agenda-item active">
+            <div class="agenda-num">2</div>
+            <div>
+              <div class="agenda-title">Bước 2: Phê Duyệt & Thành Lập Hội Đồng Thẩm Định</div>
+              <div class="agenda-desc">Quản trị viên / Trưởng khoa xem xét hồ sơ, phê duyệt đề cương và tạo Hội đồng thẩm định đề tài.</div>
+            </div>
+          </div>
+          <div class="agenda-item active">
+            <div class="agenda-num">3</div>
+            <div>
+              <div class="agenda-title">Bước 3: Chấm Điểm & Đánh Giá Phản Biện Online</div>
+              <div class="agenda-desc">Các thành viên hội đồng đăng nhập xem thuyết minh, cho điểm các tiêu chí và gửi ý kiến nhận xét trực tuyến.</div>
+            </div>
+          </div>
+          <div class="agenda-item">
+            <div class="agenda-num">4</div>
+            <div>
+              <div class="agenda-title">Bước 4: Báo Cáo Tiến Độ Định Kỳ Giữa Kỳ</div>
+              <div class="agenda-desc">Giảng viên nộp báo cáo tiến độ định kỳ (3 tháng, 6 tháng); hệ thống tự động gửi thông báo nhắc hạn.</div>
+            </div>
+          </div>
+          <div class="agenda-item active">
+            <div class="agenda-num">5</div>
+            <div>
+              <div class="agenda-title">Bước 5: Tổ Chức Nghiệm Thu & Cấp Mã Lưu Trữ Số</div>
+              <div class="agenda-desc">Hội đồng tổ chức nghiệm thu chính thức, hệ thống tự tính điểm trung bình, xuất biên bản và cấp mã lưu trữ số.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 15 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 16: MINH HỌA GIAO DIỆN & TÍNH NĂNG -->
+    <div class="slide-card" id="slide-16">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 4: Phát Triển Thử Nghiệm Hệ Thống</div>
+          <h2 class="slide-title">Minh Họa Giao Diện Nghiệp Vụ & Tính Năng Thực Tế</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box" style="padding: 10px; align-items: center; justify-content: center;">
+            <img src="slide_assets/image1.jpg" alt="Dashboard" style="max-width: 100%; max-height: 480px; border-radius: 8px; object-fit: contain;">
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Hình 1: Giao diện Dashboard tổng quan & Quy trình thẩm định đề tài</div>
+          </div>
+          <div class="card-box accent" style="padding: 10px; align-items: center; justify-content: center;">
+            <img src="slide_assets/image3.jpg" alt="Search Interface" style="max-width: 100%; max-height: 480px; border-radius: 8px; object-fit: contain;">
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Hình 2: Giao diện Tra cứu thông minh Lucene với khả năng tìm kiếm mờ</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 16 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 17: ĐÁNH GIÁ THỰC NGHIỆM HIỆU NĂNG -->
+    <div class="slide-card" id="slide-17">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 5: Đánh Giá Thực Nghiệm & Nghiệm Thu</div>
+          <h2 class="slide-title">Đánh Giá Thực Nghiệm & Đối Chuẩn Hiệu Năng (Benchmark)</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Kịch Bản Kiểm Thử (Tập dữ liệu 10.000 bản ghi)</th>
+              <th style="text-align: center;">MySQL LIKE (ms)</th>
+              <th style="text-align: center;">Apache Lucene (ms)</th>
+              <th style="text-align: center;">Mức Độ Cải Thiện</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Tìm từ khóa đơn</strong> (ví dụ: "nghiên cứu")</td>
+              <td style="text-align: center;">148.5 ms</td>
+              <td style="text-align: center; color: var(--accent); font-weight: 700;">4.2 ms</td>
+              <td style="text-align: center; color: var(--accent-green); font-weight: 700;">Nhanh hơn ~35.4 lần</td>
+            </tr>
+            <tr>
+              <td><strong>Tìm từ khóa ghép tiếng Việt</strong> (ví dụ: "hệ thống")</td>
+              <td style="text-align: center;">186.2 ms</td>
+              <td style="text-align: center; color: var(--accent); font-weight: 700;">4.8 ms</td>
+              <td style="text-align: center; color: var(--accent-green); font-weight: 700;">Nhanh hơn ~38.8 lần</td>
+            </tr>
+            <tr>
+              <td><strong>Tìm kết hợp đa tiêu chí</strong> (Từ khóa + Năm thực hiện)</td>
+              <td style="text-align: center;">242.0 ms</td>
+              <td style="text-align: center; color: var(--accent); font-weight: 700;">5.6 ms</td>
+              <td style="text-align: center; color: var(--accent-green); font-weight: 700;">Nhanh hơn ~43.2 lần</td>
+            </tr>
+            <tr>
+              <td><strong>Lọc phạm vi kinh phí</strong> (Range Query 20tr - 50tr)</td>
+              <td style="text-align: center;">285.0 ms</td>
+              <td style="text-align: center; color: var(--accent); font-weight: 700;">6.8 ms</td>
+              <td style="text-align: center; color: var(--accent-green); font-weight: 700;">Nhanh hơn ~41.9 lần</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="grid-2" style="margin-top: 16px;">
+          <div class="card-box accent">
+            <h3>Tốc Độ Phản Hồi Vượt Bậc</h3>
+            <ul>
+              <li>Tốc độ tra cứu của Lucene luôn duy trì cực kỳ ổn định dưới 7 mili-giây.</li>
+              <li>Khả năng chịu tải đồng thời đạt trên 500 yêu cầu/giây mà không hề bị nghẽn hàng đợi.</li>
+              <li>Mang lại trải nghiệm tìm kiếm tức thời (Instant Search) mượt mà cho người dùng.</li>
+            </ul>
+          </div>
+          <div class="card-box">
+            <h3>Tiết Kiệm Tài Nguyên Hệ Thống</h3>
+            <ul>
+              <li>Giảm tải hơn 80% mức độ sử dụng CPU của máy chủ cơ sở dữ liệu MySQL.</li>
+              <li>Kích thước tệp chỉ mục Lucene rất nhỏ, chỉ chiếm khoảng 12% dung lượng dữ liệu gốc.</li>
+              <li>Hoàn toàn đáp ứng triển khai trên máy chủ cấu hình vừa và nhỏ của đơn vị.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 17 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 18: KẾT QUẢ KIỂM THỬ CHỨC NĂNG & AN TOÀN -->
+    <div class="slide-card" id="slide-18">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 5: Đánh Giá Thực Nghiệm & Nghiệm Thu</div>
+          <h2 class="slide-title">Kết Quả Kiểm Thử Chức Năng & Đánh Giá An Toàn</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box">
+            <h3>Kiểm Thử Toàn Diện 60 API RESTful</h3>
+            <ul>
+              <li><strong>Phân hệ Xác thực:</strong> Đăng nhập, cấp phát JWT Token, đổi mật khẩu hoạt động chính xác 100%.</li>
+              <li><strong>Phân hệ Hồ sơ:</strong> Cập nhật lý lịch khoa học, quản lý thông tin cán bộ mượt mà.</li>
+              <li><strong>Phân hệ Đề tài & Bài báo:</strong> Thêm/Sửa/Xóa hồ sơ, tải tệp đính kèm PDF thành công.</li>
+              <li><strong>Phân hệ Hội đồng:</strong> Tạo hội đồng, phân công phản biện, chấm điểm online và tính điểm tự động chuẩn xác.</li>
+              <li><strong>Phân hệ Báo cáo:</strong> Kết xuất bảng thống kê giờ NCKH và lý lịch khoa học đúng mẫu quy định.</li>
+              <li>=> 100% các ca kiểm thử chức năng (Test Cases) đều đạt yêu cầu (Pass).</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Kiểm Thử An Toàn Bảo Mật (Security Testing)</h3>
+            <ul>
+              <li><strong>Kiểm thử phân quyền RBAC:</strong> Giảng viên không thể truy cập các API của Quản trị viên (HTTP 403 Forbidden).</li>
+              <li><strong>Kiểm thử tấn công BOLA:</strong> Thử đổi ID đề tài trên URL để sửa bài của người khác -> Bị chặn đứng ngay lập tức.</li>
+              <li><strong>Kiểm thử tiêm nhiễm SQL Injection:</strong> Thử nhập chuỗi 'OR 1=1' vào các ô tìm kiếm -> Hệ thống xử lý an toàn tuyệt đối.</li>
+              <li><strong>Kiểm thử tấn công XSS:</strong> Chèn mã độc '&lt;script&gt;' -> Tự động bị làm sạch và vô hiệu hóa.</li>
+              <li>=> Hệ thống đạt độ an toàn cao, bao phủ 6 nhóm rủi ro lớn nhất trong OWASP Top 10.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 18 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 19: ĐỐI CHIẾU MỤC TIÊU NGHIỆM THU -->
+    <div class="slide-card" id="slide-19">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 5: Đánh Giá Thực Nghiệm & Nghiệm Thu</div>
+          <h2 class="slide-title">Báo Cáo Nghiệm Thu: Đối Chiếu Mục Tiêu Cam Kết</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box">
+            <h3>Sản Phẩm Đăng Ký Trong Thuyết Minh</h3>
+            <ul>
+              <li>1. Hệ thống phần mềm quản lý hồ sơ khoa học cán bộ phục vụ thử nghiệm tại một đơn vị trường đại học.</li>
+              <li style="margin-top: 8px;">2. Giải pháp tìm kiếm tích hợp Apache Lucene hỗ trợ tra cứu văn bản khoa học tiếng Việt hiệu năng cao.</li>
+              <li style="margin-top: 8px;">3. Áp dụng các kỹ thuật lập trình an toàn trong xác thực, phân quyền và bảo vệ cơ sở dữ liệu.</li>
+              <li style="margin-top: 8px;">4. Báo cáo tổng kết đề tài NCKH chi tiết, bộ mã nguồn phần mềm và hướng dẫn cài đặt chuyển giao.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Kết Quả Đạt Được Thực Tế (100%)</h3>
+            <ul>
+              <li><strong>✓ HOÀN THÀNH 100% SẢN PHẨM PHẦN MỀM ỨNG DỤNG:</strong><br>Hệ thống "quan-ly-ho-so" hoàn chỉnh gồm Frontend React 18 và Backend Spring Boot 3 với 7 phân hệ cốt lõi.</li>
+              <li style="margin-top: 6px;"><strong>✓ LÀM CHỦ TOÀN DIỆN LÕI TÌM KIẾM APACHE LUCENE:</strong><br>Xây dựng thành công bộ máy tra cứu tiếng Việt có dấu/không dấu, chống sai chính tả, nhanh hơn MySQL 35–42 lần.</li>
+              <li style="margin-top: 6px;"><strong>✓ THIẾT LẬP HỆ THỐNG PHÒNG THỦ AN TOÀN ĐẠT CHUẨN:</strong><br>Bảo vệ vững chắc theo chuẩn OWASP Top 10 với JWT, BCrypt, RBAC 3 lớp và chống truy cập chéo BOLA.</li>
+              <li style="margin-top: 6px;"><strong>✓ ĐẦY ĐỦ HỒ SƠ KHOA HỌC & ĐỀ CƯƠNG BÀI BÁO:</strong><br>Báo cáo tổng kết đạt chuẩn quy định của Nhà trường, sẵn sàng chuyển giao cho Khoa CNTT - Đại học Điện lực.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 19 / 20</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 20: KẾT LUẬN & KIẾN NGHỊ -->
+    <div class="slide-card" id="slide-20">
+      <div class="slide-header">
+        <div>
+          <div class="slide-subtitle">Phần 5: Đánh Giá Thực Nghiệm & Nghiệm Thu</div>
+          <h2 class="slide-title">Kết Luận, Kiến Nghị & Lời Cảm Ơn</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card-box">
+            <h3>Kết Luận Của Đề Tài</h3>
+            <ul>
+              <li>Đề tài đã hoàn thành xuất sắc 100% mục tiêu, tiến độ và chất lượng theo đúng thuyết minh đăng ký năm 2026.</li>
+              <li>Khẳng định tính đúng đắn và ưu việt của việc ứng dụng Apache Lucene trong việc giải quyết bài toán tìm kiếm học thuật tiếng Việt.</li>
+              <li>Chứng minh tính hiệu quả của mô hình "Secure by Design" trong việc bảo vệ dữ liệu hồ sơ khoa học tại đơn vị.</li>
+            </ul>
+          </div>
+          <div class="card-box accent">
+            <h3>Định Hướng Phát Triển Tiếp Theo</h3>
+            <ul>
+              <li><strong>Trích xuất toàn văn tệp PDF (Apache Tika):</strong> Đánh chỉ mục nội dung bên trong các file báo cáo và bài báo khoa học đính kèm.</li>
+              <li><strong>Ứng dụng Trí tuệ nhân tạo (AI):</strong> Sử dụng mô hình học máy để tự động gợi ý giảng viên phản biện phù hợp với từng đề tài.</li>
+              <li><strong>Triển khai diện rộng:</strong> Đóng gói Docker Container đưa vào áp dụng chính thức cho toàn trường Đại học Điện lực.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card-box" style="text-align: center; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-color: #7dd3fc; margin-top: 14px;">
+          <h3 style="justify-content: center; font-size: 17px; color: #0369a1;">XIN TRÂN TRỌNG CẢM ƠN QUÝ THẦY CÔ TRONG HỘI ĐỒNG NGHIỆM THU!</h3>
+          <p style="margin-top: 4px; font-size: 13px;">Kính chúc Quý Thầy Cô sức khỏe, hạnh phúc và thành công!</p>
+          <p style="font-weight: 600; color: #1e3a8a; margin-top: 6px; font-size: 13.5px;">Nhóm Nghiên cứu & Chủ nhiệm Đề tài: Khuất Quang Tiến | GVHD: ThS. Nguyễn Quỳnh Anh</p>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Đại học Điện lực - Báo cáo nghiệm thu NCKH 2026</span>
+        <span>Slide 20 / 20</span>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 20;
+
+    function showSlide(n) {
+      if (n < 1) n = 1;
+      if (n > totalSlides) n = totalSlides;
+      currentSlide = n;
+
+      for (let i = 1; i <= totalSlides; i++) {
+        const slide = document.getElementById('slide-' + i);
+        if (slide) {
+          slide.classList.remove('active');
+        }
+      }
+
+      const activeSlide = document.getElementById('slide-' + currentSlide);
+      if (activeSlide) {
+        activeSlide.classList.add('active');
+      }
+
+      document.getElementById('slide-indicator').innerText = 'Trang ' + currentSlide + ' / ' + totalSlides;
+      document.getElementById('progress-fill').style.width = ((currentSlide / totalSlides) * 100) + '%';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert('Không thể vào chế độ toàn màn hình: ' + err.message);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      } else if (e.key === 'Home') {
+        showSlide(1);
+      } else if (e.key === 'End') {
+        showSlide(totalSlides);
+      }
+    });
+  </script>
+</body>
+</html>
